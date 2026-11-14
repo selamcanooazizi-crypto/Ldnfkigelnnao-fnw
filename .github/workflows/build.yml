@@ -9,40 +9,38 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Projeyi indir
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+      - name: Java 17 kur
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - uses: android-actions/setup-android@v3
+      - name: Android SDK kur
+        uses: android-actions/setup-android@v4
+        with:
+          accept-android-sdk-licenses: 'true'
+          packages: ''
 
-      - name: Android SDK
+      - name: SDK paketlerini yükle
         run: |
-          yes | sdkmanager --licenses
           sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
-      - uses: gradle/actions/setup-gradle@v4
+      - name: Gradle 8.9 kur
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: Projeyi bul ve derle
+      - name: APK derle
         run: |
-          echo "Proje dosyaları:"
-          find . -name settings.gradle.kts
-          PROJECT_DIR=$(dirname "$(find . -name settings.gradle.kts -print -quit)")
-          if [ -z "$PROJECT_DIR" ]; then
-            echo "settings.gradle.kts bulunamadı!"
-            exit 1
-          fi
-          cd "$PROJECT_DIR"
-          echo "Derleme klasörü: $PWD"
+          echo "Proje klasörleri:"
           ls -la
-          gradle projects
-          gradle assembleDebug --no-daemon
+          gradle -p . assembleDebug --no-daemon
 
-      - uses: actions/upload-artifact@v4
+      - name: APK dosyasını hazırla
+        uses: actions/upload-artifact@v4
         with:
           name: ZegaAI-debug-apk
-          path: "**/app/build/outputs/apk/debug/app-debug.apk"
+          path: app/build/outputs/apk/debug/app-debug.apk
